@@ -1,0 +1,218 @@
+
+{% extends "base.html" %}
+
+{% block title %}Budgets | Spendly{% endblock %}
+
+{% block content %}
+<section class="dashboard-page">
+
+    <div class="dashboard-header">
+        <div>
+            <p class="eyebrow">PLAN YOUR SPENDING</p>
+            <h1>Monthly Budget</h1>
+            <p class="muted">
+                Set a monthly spending limit and track your expenses.
+            </p>
+        </div>
+    </div>
+
+    <section class="dashboard-section">
+        <div class="section-heading">
+            <div>
+                <h2>Choose Month</h2>
+                <p class="muted">Select the month you want to manage.</p>
+            </div>
+        </div>
+
+        <form method="GET" action="{{ url_for('budgets') }}" class="filter-form">
+            <div class="form-group">
+                <label for="month">Budget month</label>
+                <input
+                    type="month"
+                    id="month"
+                    name="month"
+                    value="{{ month }}"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn btn-secondary">
+                View Month
+            </button>
+        </form>
+    </section>
+
+    <section class="dashboard-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">MONTHLY LIMIT</p>
+                <h2>Set Your Budget</h2>
+                <p class="muted">
+                    Enter the maximum amount you plan to spend this month.
+                </p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('budgets') }}" class="form-stack">
+            <input type="hidden" name="month" value="{{ month }}">
+
+            <div class="form-group">
+                <label for="amount">Monthly budget (₹)</label>
+                <input
+                    type="number"
+                    id="amount"
+                    name="amount"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="Enter your budget"
+                    value="{{ budget.amount if budget else '' }}"
+                    required
+                >
+                <small>Budget applies to the selected month.</small>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    Save Budget
+                </button>
+            </div>
+        </form>
+    </section>
+
+    {% set safe_spent = spent|default(0, true)|float %}
+    {% set safe_remaining = remaining|default(0, true)|float %}
+    {% set safe_budget = budget.amount|float if budget else 0 %}
+    {% set budget_percent = (safe_spent / safe_budget * 100) if safe_budget > 0 else 0 %}
+
+    <section class="dashboard-cards">
+
+        <article class="dashboard-card">
+            <p class="muted">Monthly Budget</p>
+            <h2>
+                ₹{{ "%.2f"|format(safe_budget) }}
+            </h2>
+            <p class="muted">{{ month }}</p>
+        </article>
+
+        <article class="dashboard-card">
+            <p class="muted">Total Spent</p>
+            <h2 class="expense-amount">
+                ₹{{ "%.2f"|format(safe_spent) }}
+            </h2>
+            <p class="muted">Expenses recorded this month</p>
+        </article>
+
+        <article class="dashboard-card">
+            <p class="muted">Remaining Budget</p>
+
+            <h2 class="{% if safe_remaining < 0 %}expense-amount{% else %}income-amount{% endif %}">
+                ₹{{ "%.2f"|format(safe_remaining) }}
+            </h2>
+
+            <p class="muted">Budget minus recorded expenses</p>
+        </article>
+
+    </section>
+
+    <section class="dashboard-section">
+        <div class="section-heading">
+            <div>
+                <h2>Budget Progress</h2>
+                <p class="muted">
+                    See how much of your monthly budget has been used.
+                </p>
+            </div>
+        </div>
+
+        <div class="spending-category-heading">
+            <strong>Used budget</strong>
+            <span>{{ "%.1f"|format(budget_percent) }}%</span>
+        </div>
+
+        <div class="progress-track">
+            <div
+                class="progress-fill {% if budget_percent >= 100 %}progress-danger{% elif budget_percent >= 80 %}progress-warning{% endif %}"
+                data-percent="{{ budget_percent }}"
+            ></div>
+        </div>
+
+        {% if not budget %}
+            <p class="budget-status">
+                Set a budget above to start tracking your monthly spending.
+            </p>
+        {% elif budget_percent >= 100 %}
+            <p class="budget-status">
+                You have reached or exceeded your monthly budget.
+            </p>
+        {% elif budget_percent >= 80 %}
+            <p class="budget-status">
+                You have used most of your budget. Review your remaining expenses.
+            </p>
+        {% else %}
+            <p class="budget-status">
+                You are currently within your monthly budget.
+            </p>
+        {% endif %}
+    </section>
+
+    <section class="dashboard-section">
+        <div class="section-heading">
+            <div>
+                <h2>Expense Breakdown</h2>
+                <p class="muted">
+                    Categories contributing to this month's spending.
+                </p>
+            </div>
+        </div>
+
+        {% if spent_by_category %}
+
+            <div class="spending-overview-list">
+
+                {% for category, category_amount in spent_by_category.items() %}
+
+                    {% set safe_category_amount = category_amount|float %}
+                    {% set category_percent = (safe_category_amount / safe_spent * 100) if safe_spent > 0 else 0 %}
+
+                    <div class="spending-category-item">
+
+                        <div class="spending-category-heading">
+                            <strong>{{ category }}</strong>
+                            <span>
+                                ₹{{ "%.2f"|format(safe_category_amount) }}
+                            </span>
+                        </div>
+
+                        <div class="progress-track">
+                            <div
+                                class="progress-fill"
+                                data-percent="{{ category_percent }}"
+                            ></div>
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <h3>No expenses recorded</h3>
+                <p class="muted">
+                    Expenses for {{ month }} will appear here when you record them.
+                </p>
+            </div>
+
+        {% endif %}
+    </section>
+
+    <div style="margin-top: 24px;">
+        <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">
+            Back to Dashboard
+        </a>
+    </div>
+
+</section>
+{% endblock %}

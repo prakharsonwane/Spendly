@@ -1,0 +1,169 @@
+
+{% extends "base.html" %}
+
+{% block title %}Reports | Spendly{% endblock %}
+
+{% block content %}
+<section class="dashboard-page">
+
+    <div class="dashboard-header">
+        <div>
+            <p class="eyebrow">YOUR MONEY SUMMARY</p>
+            <h1>Reports</h1>
+            <p class="muted">Understand your income and spending.</p>
+        </div>
+    </div>
+
+    <section class="dashboard-section">
+        <h2>Select Month</h2>
+
+        <form
+            action="{{ url_for('reports') }}"
+            method="GET"
+            class="form-stack"
+        >
+            <div class="form-group">
+                <label for="month">Month</label>
+                <input
+                    type="month"
+                    id="month"
+                    name="month"
+                    value="{{ month }}"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Generate Report
+            </button>
+        </form>
+    </section>
+
+    <section class="dashboard-cards">
+
+        <article class="dashboard-card">
+            <p class="muted">Monthly Income</p>
+            <h2 class="income-amount">
+                ₹{{ "%.2f"|format(monthly_income|float) }}
+            </h2>
+        </article>
+
+        <article class="dashboard-card">
+            <p class="muted">Monthly Expenses</p>
+            <h2 class="expense-amount">
+                ₹{{ "%.2f"|format(monthly_expenses|float) }}
+            </h2>
+        </article>
+
+        <article class="dashboard-card">
+            <p class="muted">Net Difference</p>
+            <h2>
+                ₹{{ "%.2f"|format((monthly_income|float) - (monthly_expenses|float)) }}
+            </h2>
+        </article>
+
+    </section>
+
+    <section class="dashboard-section">
+
+        <div class="section-heading">
+            <div>
+                <h2>Expenses by Category</h2>
+                <p class="muted">
+                    Category-wise spending for {{ month }}.
+                </p>
+            </div>
+        </div>
+
+        {% if category_totals %}
+
+            <div class="transaction-list">
+
+                {% for category, total in category_totals.items() %}
+
+                    <article class="transaction-item">
+
+                        <div class="transaction-details">
+                            <strong class="transaction-name">
+                                {{ category }}
+                            </strong>
+
+                            <p class="transaction-meta">
+                                Expenses recorded for {{ month }}
+                            </p>
+                        </div>
+
+                        <strong class="expense-amount">
+                            ₹{{ "%.2f"|format(total|float) }}
+                        </strong>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <h3>No Expense Data Found</h3>
+                <p class="muted">
+                    No expenses have been recorded for {{ month }}.
+                </p>
+
+                <a
+                    href="{{ url_for('transactions', month=month) }}"
+                    class="btn btn-primary"
+                >
+                    View Transactions
+                </a>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+    <section class="dashboard-section">
+
+        <h2>Financial Summary</h2>
+
+        {% if monthly_income|float > monthly_expenses|float %}
+
+            <p class="muted">
+                Your income is higher than your expenses for {{ month }}.
+            </p>
+
+        {% elif monthly_expenses|float > monthly_income|float %}
+
+            <p class="muted">
+                Your expenses are higher than your income for {{ month }}.
+            </p>
+
+        {% else %}
+
+            <p class="muted">
+                Your income and expenses are equal for {{ month }}.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+    <div class="dashboard-section">
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="btn btn-secondary"
+        >
+            Back to Dashboard
+        </a>
+
+        <a
+            href="{{ url_for('export_csv') }}"
+            class="btn btn-primary"
+        >
+            Export Transactions CSV
+        </a>
+    </div>
+
+</section>
+{% endblock %}

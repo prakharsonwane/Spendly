@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "Spendly - Track Every Spend",
+  "short_name": "Spendly",
+  "description": "Track income, expenses, savings, pocket money and budgets.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "categories": [
+    "finance",
+    "productivity"
+  ],
+  "icons": []
+}

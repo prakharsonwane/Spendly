@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#0b1120">
+    <meta
+        name="description"
+        content="Spendly - Manage your money, track transactions, set budgets and understand your spending."
+    >
+
+    <title>{% block title %}Spendly{% endblock %}</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-shell">
+
+        <header class="topbar">
+            <a
+                class="brand"
+                href="{{ url_for('dashboard') if session.get('user_id') else url_for('login') }}"
+                aria-label="Spendly home"
+            >
+                <span class="brand-icon">S</span>
+                <span>Spendly<span class="brand-dot">.</span></span>
+            </a>
+
+            {% if session.get('user_id') %}
+                <nav class="main-nav" aria-label="Main navigation">
+
+                    <a
+                        href="{{ url_for('dashboard') }}"
+                        class="{% if request.endpoint == 'dashboard' %}active{% endif %}"
+                        {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}
+                    >
+                        Dashboard
+                    </a>
+
+                    <a
+                        href="{{ url_for('transactions') }}"
+                        class="{% if request.endpoint in ['transactions', 'add_transaction', 'edit_transaction', 'delete_transaction'] %}active{% endif %}"
+                        {% if request.endpoint in ['transactions', 'add_transaction', 'edit_transaction', 'delete_transaction'] %}aria-current="page"{% endif %}
+                    >
+                        Transactions
+                    </a>
+
+                    <a
+                        href="{{ url_for('budgets') }}"
+                        class="{% if request.endpoint == 'budgets' %}active{% endif %}"
+                        {% if request.endpoint == 'budgets' %}aria-current="page"{% endif %}
+                    >
+                        Budgets
+                    </a>
+
+                    <a
+                        href="{{ url_for('reports') }}"
+                        class="{% if request.endpoint == 'reports' %}active{% endif %}"
+                        {% if request.endpoint == 'reports' %}aria-current="page"{% endif %}
+                    >
+                        Reports
+                    </a>
+
+                    <form
+                        action="{{ url_for('logout') }}"
+                        method="POST"
+                        class="logout-form"
+                    >
+                        <button type="submit" class="nav-logout">
+                            Log out
+                        </button>
+                    </form>
+
+                </nav>
+            {% else %}
+                <nav class="main-nav" aria-label="Account navigation">
+
+                    <a
+                        href="{{ url_for('login') }}"
+                        class="{% if request.endpoint == 'login' %}active{% endif %}"
+                    >
+                        Log in
+                    </a>
+
+                    <a
+                        href="{{ url_for('register') }}"
+                        class="{% if request.endpoint == 'register' %}active{% endif %}"
+                    >
+                        Create account
+                    </a>
+
+                </nav>
+            {% endif %}
+        </header>
+
+        <main class="page-container">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="global-flash-list" aria-live="polite">
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}">
+                                <span>{{ message }}</span>
+
+                                <button
+                                    type="button"
+                                    class="flash-dismiss"
+                                    aria-label="Dismiss message"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+
+        </main>
+
+        <footer class="app-footer">
+            <p>
+                Spendly <span class="brand-dot">.</span>
+                &mdash; Manage your money with clarity.
+            </p>
+        </footer>
+
+    </div>
+
+    <script
+        src="{{ url_for('static', filename='js/app.js') }}"
+        defer
+    ></script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

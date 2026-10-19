@@ -1,0 +1,147 @@
+
+{% extends "base.html" %}
+
+{% block title %}Create Account | Spendly{% endblock %}
+
+{% block content %}
+<section class="auth-wrapper">
+    <div class="auth-card">
+
+        <a class="auth-brand" href="{{ url_for('register') }}">
+            <span class="brand-icon">S</span>
+            <span>Spendly<span class="brand-dot">.</span></span>
+        </a>
+
+        <div class="auth-heading">
+            <p class="eyebrow">GET STARTED</p>
+            <h1>Create your account</h1>
+            <p class="muted">Start managing your money in one place.</p>
+        </div>
+
+        <form
+            action="{{ url_for('register') }}"
+            method="POST"
+            class="form-stack"
+        >
+            <div class="form-group">
+                <label for="username">Username</label>
+
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Choose a username"
+                    minlength="3"
+                    maxlength="80"
+                    autocomplete="username"
+                    required
+                >
+
+                <small class="field-hint">
+                    Use at least 3 characters.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+
+                <div class="password-field-wrap">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Create a password"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-password-toggle="password"
+                        aria-label="Show password"
+                        aria-pressed="false"
+                    >
+                        <svg
+                            class="eye-icon"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="21"
+                            height="21"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <small class="field-hint">
+                    Password must contain at least 8 characters.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+
+                <div class="password-field-wrap">
+                    <input
+                        type="password"
+                        id="confirm_password"
+                        name="confirm_password"
+                        placeholder="Enter your password again"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-password-toggle="confirm_password"
+                        aria-label="Show confirm password"
+                        aria-pressed="false"
+                    >
+                        <svg
+                            class="eye-icon"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="21"
+                            height="21"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">
+                Create Account <span aria-hidden="true">→</span>
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            Already have an account?
+            <a href="{{ url_for('login') }}">Log in</a>
+        </p>
+
+        <p class="auth-note">
+            Simple tracking. Smarter money decisions.
+        </p>
+
+    </div>
+</section>
+{% endblock %}

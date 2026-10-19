@@ -1,0 +1,96 @@
+
+{% extends "base.html" %}
+
+{% block title %}Login | Spendly{% endblock %}
+
+{% block content %}
+<section class="auth-wrapper">
+    <div class="auth-card">
+
+        <a class="auth-brand" href="{{ url_for('login') }}">
+            <span class="brand-icon">S</span>
+            <span>Spendly<span class="brand-dot">.</span></span>
+        </a>
+
+        <div class="auth-heading">
+            <p class="eyebrow">WELCOME BACK</p>
+            <h1>Welcome back!</h1>
+            <p class="muted">Log in to manage your money.</p>
+        </div>
+
+        <form
+            action="{{ url_for('login') }}"
+            method="POST"
+            class="form-stack"
+        >
+            <div class="form-group">
+                <label for="username">Username</label>
+
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    autocomplete="username"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+
+                <div class="password-field-wrap">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-password-toggle="password"
+                        aria-label="Show password"
+                        aria-pressed="false"
+                    >
+                        <svg
+                            class="eye-icon"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="21"
+                            height="21"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">
+                Log In <span aria-hidden="true">→</span>
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            Don't have an account?
+            <a href="{{ url_for('register') }}">Create account</a>
+        </p>
+
+        <p class="auth-note">
+            Your money, your goals, all in one place.
+        </p>
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,597 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Spendly{% endblock %}
+
+{% block content %}
+
+<section class="dashboard-page">
+
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div>
+            <p class="eyebrow">YOUR FINANCES</p>
+            <h1>Dashboard</h1>
+            <p class="muted">Your money, all in one place.</p>
+        </div>
+
+        <div class="dashboard-today">
+            <p class="muted">Today</p>
+            <strong>{{ today }}</strong>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-list" aria-live="polite">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}" role="status">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Monthly Summary Cards -->
+    <section class="dashboard-cards">
+
+        <article class="dashboard-card">
+            <p class="muted">Monthly Income</p>
+
+            <h2 class="income-amount">
+                ₹{{ "%.2f"|format(monthly_income|float) }}
+            </h2>
+
+            <p class="muted">{{ month }}</p>
+        </article>
+
+        <article class="dashboard-card">
+            <p class="muted">Monthly Expense</p>
+
+            <h2 class="expense-amount">
+                ₹{{ "%.2f"|format(monthly_expenses|float) }}
+            </h2>
+
+            <p class="muted">{{ month }}</p>
+        </article>
+
+        <article class="dashboard-card">
+            <p class="muted">This Month's Balance</p>
+
+            <h2>
+                ₹{{ "%.2f"|format(this_month_balance|float) }}
+            </h2>
+
+            <p class="muted">Income minus expenses</p>
+        </article>
+
+    </section>
+
+    <!-- Spending Overview -->
+    <section class="dashboard-section">
+
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">WHERE YOUR MONEY GOES</p>
+                <h2>Spending Overview</h2>
+
+                <p class="muted">
+                    Category-wise expenses for {{ month }}.
+                </p>
+            </div>
+
+            <a href="{{ url_for('reports', month=month) }}"
+               class="text-link">
+                View Reports →
+            </a>
+        </div>
+
+        {% if category_totals %}
+
+            {% set total_spending = monthly_expenses|float %}
+
+            <div class="spending-total-highlight">
+                <div>
+                    <span class="spending-total-kicker">
+                        TOTAL SPENT THIS MONTH
+                    </span>
+
+                    <strong>
+                        ₹{{ "%.2f"|format(total_spending) }}
+                    </strong>
+                </div>
+
+                <span class="spending-total-badge">
+                    {{ category_totals|length }} categories
+                </span>
+            </div>
+
+            <div class="spending-overview-list">
+
+                {% for category, amount in category_totals.items()|sort(attribute='1', reverse=true) %}
+
+                    {% set category_amount = amount|float %}
+
+                    {% set category_percent = (
+                        category_amount / total_spending * 100
+                    ) if total_spending > 0 else 0 %}
+
+                    <article class="spending-category-item">
+
+                        <div class="spending-category-heading">
+                            <strong>{{ category }}</strong>
+
+                            <span>
+                                ₹{{ "%.2f"|format(category_amount) }}
+
+                                <small>
+                                    ({{ "%.1f"|format(category_percent) }}%)
+                                </small>
+                            </span>
+                        </div>
+
+                        <div
+                            class="progress-track"
+                            role="progressbar"
+                            aria-label="{{ category }} spending"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            aria-valuenow="{{ category_percent|round|int }}"
+                        >
+                            <div
+                                class="progress-fill"
+                                data-percent="{{ category_percent }}"
+                            ></div>
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <h3>No expenses yet</h3>
+
+                <p class="muted">
+                    Add an expense to see your category-wise spending here.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+    <!-- Four-Week Financial Chart -->
+    <section class="dashboard-section weekly-chart-section">
+
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">THIS MONTH AT A GLANCE</p>
+                <h2>Weekly Financial Summary</h2>
+
+                <p class="muted">
+                    Income vs expenses for the four weeks of {{ month }}.
+                </p>
+            </div>
+        </div>
+
+        {% if weekly_summary %}
+
+            {% set ns = namespace(max_amount=1) %}
+
+            {% for item in weekly_summary %}
+
+                {% if item.income|float > ns.max_amount %}
+                    {% set ns.max_amount = item.income|float %}
+                {% endif %}
+
+                {% if item.expenses|float > ns.max_amount %}
+                    {% set ns.max_amount = item.expenses|float %}
+                {% endif %}
+
+            {% endfor %}
+
+            <div class="weekly-chart-legend chart-legend">
+                <span>
+                    <span class="legend-dot income-dot"></span>
+                    Income
+                </span>
+
+                <span>
+                    <span class="legend-dot expense-dot"></span>
+                    Expenses
+                </span>
+            </div>
+
+            <div class="weekly-chart-grid">
+
+                {% for item in weekly_summary %}
+
+                    {% set income_height = (
+                        item.income|float / ns.max_amount * 100
+                    ) %}
+
+                    {% set expense_height = (
+                        item.expenses|float / ns.max_amount * 100
+                    ) %}
+
+                    <article class="weekly-chart-card">
+
+                        <div class="weekly-chart-card-heading">
+                            <strong>{{ item.label }}</strong>
+                            <span>Days {{ item.range }}</span>
+                        </div>
+
+                        <div
+                            class="weekly-chart-bars"
+                            aria-label="{{ item.label }} income and expenses"
+                        >
+
+                            <!-- Income Bar -->
+                            <div class="weekly-chart-bar-column">
+
+                                <div class="weekly-chart-bar-value">
+                                    ₹{{ "%.0f"|format(item.income|float) }}
+                                </div>
+
+                                <div class="weekly-chart-bar-track">
+                                    <div
+                                        class="weekly-chart-bar income-week-bar"
+                                        data-percent="{{ income_height }}"
+                                    ></div>
+                                </div>
+
+                                <span>Income</span>
+
+                            </div>
+
+                            <!-- Expense Bar -->
+                            <div class="weekly-chart-bar-column">
+
+                                <div class="weekly-chart-bar-value">
+                                    ₹{{ "%.0f"|format(item.expenses|float) }}
+                                </div>
+
+                                <div class="weekly-chart-bar-track">
+                                    <div
+                                        class="weekly-chart-bar expense-week-bar"
+                                        data-percent="{{ expense_height }}"
+                                    ></div>
+                                </div>
+
+                                <span>Expense</span>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Weekly Balance -->
+                        <div class="weekly-chart-balance {% if item.balance < 0 %}negative-balance{% endif %}">
+
+                            <span>Net balance</span>
+
+                            <strong>
+                                {% if item.balance < 0 %}
+                                    −
+                                {% else %}
+                                    +
+                                {% endif %}
+                                ₹{{ "%.2f"|format(item.balance|abs) }}
+                            </strong>
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <p class="muted">
+                    Your four weekly summaries will appear here.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+    <!-- Recent Transactions -->
+    <section class="dashboard-section">
+
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">LATEST ACTIVITY</p>
+                <h2>Recent Transactions</h2>
+            </div>
+
+            <a href="{{ url_for('transactions') }}"
+               class="text-link">
+                View All →
+            </a>
+        </div>
+
+        {% if recent %}
+
+            <div class="transaction-list">
+
+                {% for transaction in recent %}
+
+                    <article class="transaction-item">
+
+                        <div>
+                            <strong>{{ transaction.category }}</strong>
+
+                            <p class="muted">
+                                {{ transaction.note or "No note" }}
+                            </p>
+
+                            <small>
+                                {{ transaction.transaction_date }}
+                            </small>
+                        </div>
+
+                        <div class="transaction-item-amount">
+
+                            {% if transaction.transaction_type == "income" %}
+
+                                <strong class="income-amount">
+                                    +₹{{ "%.2f"|format(transaction.amount|float) }}
+                                </strong>
+
+                            {% elif transaction.transaction_type == "expense" %}
+
+                                <strong class="expense-amount">
+                                    −₹{{ "%.2f"|format(transaction.amount|float) }}
+                                </strong>
+
+                            {% elif transaction.transaction_type == "transfer_in" %}
+
+                                <strong class="income-amount">
+                                    +₹{{ "%.2f"|format(transaction.amount|float) }}
+                                </strong>
+
+                                <small class="muted">Transfer</small>
+
+                            {% else %}
+
+                                <strong>
+                                    −₹{{ "%.2f"|format(transaction.amount|float) }}
+                                </strong>
+
+                                <small class="muted">Transfer</small>
+
+                            {% endif %}
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <h3>No transactions yet</h3>
+
+                <p class="muted">
+                    Your recent income and expenses will appear here.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+    <!-- My Money Wallet -->
+    <section class="dashboard-section wallet-section wallet-section-compact">
+
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">YOUR MONEY</p>
+                <h2>My Money Wallet</h2>
+
+                <p class="muted">
+                    Your money at a glance.
+                </p>
+            </div>
+        </div>
+
+        <div class="wallet-overview">
+
+            <!-- Total Money -->
+            <article class="wallet-total-card">
+
+                <div class="wallet-total-topline">
+                    <span class="wallet-card-icon" aria-hidden="true">
+                        ₹
+                    </span>
+
+                    <span class="wallet-label">TOTAL MONEY</span>
+                </div>
+
+                <h3>
+                    ₹{{ "%.2f"|format(total_money|float) }}
+                </h3>
+
+                <p>Available money + savings</p>
+
+            </article>
+
+            <!-- Savings Information -->
+            <div class="wallet-side-info">
+
+                <div class="wallet-savings-mini">
+
+                    <span class="wallet-savings-icon" aria-hidden="true">
+                        ✦
+                    </span>
+
+                    <div>
+                        <p class="muted">Total Savings</p>
+
+                        <strong>
+                            ₹{{ "%.2f"|format(total_savings|float) }}
+                        </strong>
+                    </div>
+
+                </div>
+
+                <p class="wallet-helper">
+                    Keep your wallet and savings up to date.
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- Wallet Actions -->
+        <div class="wallet-actions wallet-actions-compact">
+
+            <!-- Add Money -->
+            <details class="wallet-action-option">
+
+                <summary class="wallet-option-button">
+
+                    <span class="wallet-option-symbol" aria-hidden="true">
+                        ＋
+                    </span>
+
+                    <span>
+                        <strong>Add Money</strong>
+                        <small>Add money to your available balance</small>
+                    </span>
+
+                    <span class="wallet-option-chevron" aria-hidden="true">
+                        ⌄
+                    </span>
+
+                </summary>
+
+                <form
+                    action="{{ url_for('add_wallet_money') }}"
+                    method="POST"
+                    class="form-stack wallet-inline-form"
+                >
+
+                    <div class="form-group">
+                        <label for="wallet_amount">Amount (₹)</label>
+
+                        <input
+                            type="number"
+                            id="wallet_amount"
+                            name="amount"
+                            min="0.01"
+                            max="100000000"
+                            step="0.01"
+                            placeholder="Enter amount"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">
+                        Confirm Add Money
+                    </button>
+
+                </form>
+
+            </details>
+
+            <!-- Add Savings -->
+            <details class="wallet-action-option">
+
+                <summary class="wallet-option-button savings-option-button">
+
+                    <span class="wallet-option-symbol" aria-hidden="true">
+                        ✦
+                    </span>
+
+                    <span>
+                        <strong>Add Saving</strong>
+                        <small>Move available money into savings</small>
+                    </span>
+
+                    <span class="wallet-option-chevron" aria-hidden="true">
+                        ⌄
+                    </span>
+
+                </summary>
+
+                <form
+                    action="{{ url_for('add_wallet_savings') }}"
+                    method="POST"
+                    class="form-stack wallet-inline-form"
+                >
+
+                    <div class="form-group">
+                        <label for="savings_amount">Amount (₹)</label>
+
+                        <input
+                            type="number"
+                            id="savings_amount"
+                            name="amount"
+                            min="0.01"
+                            max="100000000"
+                            step="0.01"
+                            placeholder="Enter savings amount"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">
+                        Confirm Saving
+                    </button>
+
+                </form>
+
+            </details>
+
+        </div>
+
+    </section>
+
+</section>
+
+<!-- Progress Bars and Weekly Chart -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Category-wise spending progress bars
+    document.querySelectorAll(".progress-fill[data-percent]")
+        .forEach(function (bar) {
+
+            const percent = parseFloat(bar.dataset.percent);
+
+            if (Number.isFinite(percent)) {
+                const safePercent = Math.min(100, Math.max(0, percent));
+                bar.style.width = safePercent + "%";
+            }
+
+        });
+
+    // Weekly income and expense chart bars
+    document.querySelectorAll(".weekly-chart-bar[data-percent]")
+        .forEach(function (bar) {
+
+            const percent = parseFloat(bar.dataset.percent);
+
+            if (Number.isFinite(percent)) {
+                const safePercent = Math.min(100, Math.max(0, percent));
+                bar.style.height = safePercent + "%";
+            }
+
+        });
+
+});
+</script>
+
+{% endblock %}
